@@ -21,12 +21,12 @@ public class BaseInitData {
     @Bean
     ApplicationRunner baseInitDataApplicationRunner() {
         return args -> {
-            self.work1();
+            self.work2();
         };
     }
 
     @Transactional
-    public void work1() {
+    public void work2() {
         if (postService.count() > 0) return;
 
         Post post1 = postService.write("제목 1", "내용 1");
