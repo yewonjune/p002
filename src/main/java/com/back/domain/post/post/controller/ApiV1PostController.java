@@ -5,7 +5,6 @@ import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
-import com.back.global.globalExceptionHandler.AccessDeniedException;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -60,9 +59,7 @@ public class ApiV1PostController {
 
         Post post = postService.findById(id).get();
 
-        if (post.getAuthor().getId() != actor.getId()) {
-            throw new AccessDeniedException();
-        }
+        post.checkActorCanDelete(actor);
 
         postService.delete(post);
 
