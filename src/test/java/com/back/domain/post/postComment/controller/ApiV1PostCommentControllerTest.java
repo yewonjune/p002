@@ -1,5 +1,7 @@
 package com.back.domain.post.postComment.controller;
 
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import com.back.domain.post.postComment.entity.PostComment;
@@ -31,6 +33,8 @@ public class ApiV1PostCommentControllerTest {
     private MockMvc mvc;
     @Autowired
     private PostService postService;
+    @Autowired
+    private MemberService memberService;
 
     @Test
     @DisplayName("댓글 단건조회")
@@ -138,10 +142,11 @@ public class ApiV1PostCommentControllerTest {
     @DisplayName("댓글 작성")
     void t5() throws Exception {
         int postId = 1;
+        Member actor = memberService.findByUsername("user1").get();
 
         ResultActions resultActions = mvc
                 .perform(
-                        post("/api/v1/posts/%d/comments".formatted(postId))
+                        post("/api/v1/posts/%d/comments?actorId=%d".formatted(postId, actor.getId()))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -163,6 +168,8 @@ public class ApiV1PostCommentControllerTest {
                 .andExpect(jsonPath("$.data.id").value(postComment.getId()))
                 .andExpect(jsonPath("$.data.createDate").value(Matchers.startsWith(postComment.getCreateDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.modifyDate").value(Matchers.startsWith(postComment.getModifyDate().toString().substring(0, 20))))
+                .andExpect(jsonPath("$.data.authorId").value(actor.getId()))
+                .andExpect(jsonPath("$.data.authorName").value(actor.getName()))
                 .andExpect(jsonPath("$.data.content").value("내용"));
     }
 
