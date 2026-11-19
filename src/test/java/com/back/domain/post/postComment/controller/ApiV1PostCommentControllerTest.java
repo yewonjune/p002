@@ -195,4 +195,60 @@ public class ApiV1PostCommentControllerTest {
                     .andExpect(jsonPath("$.authorName").value(expectedAuthorNames[i]));
         }
     }
+
+    @Test
+    @DisplayName("댓글 작성, without actorId")
+    void t7() throws Exception {
+        int postId = 1;
+        int commentsCount = postService.findById(postId).get().getComments().size();
+
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/posts/%d/comments".formatted(postId))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostCommentController.class))
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+
+        assertThat(postService.findById(postId).get().getComments()).hasSize(commentsCount);
+    }
+
+    @Test
+    @DisplayName("댓글 작성, with wrong actorId")
+    void t8() throws Exception {
+        int postId = 1;
+        int commentsCount = postService.findById(postId).get().getComments().size();
+
+        ResultActions resultActions = mvc
+                .perform(
+                        post("/api/v1/posts/%d/comments?actorId=%d".formatted(postId, Integer.MAX_VALUE))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostCommentController.class))
+                .andExpect(handler().methodName("write"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+
+        assertThat(postService.findById(postId).get().getComments()).hasSize(commentsCount);
+    }
 }
