@@ -209,10 +209,11 @@ public class ApiV1PostControllerTest {
     @DisplayName("글 수정")
     void t2() throws Exception {
         int id = 1;
+        Member actor = postService.findById(id).get().getAuthor();
 
         ResultActions resultActions = mvc
                 .perform(
-                        put("/api/v1/posts/" + id)
+                        put("/api/v1/posts/%d?actorId=%d".formatted(id, actor.getId()))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -229,6 +230,40 @@ public class ApiV1PostControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
                 .andExpect(jsonPath("$.msg").value("%d번 글이 수정되었습니다.".formatted(id)));
+
+        Post post = postService.findById(id).get();
+
+        assertThat(post.getTitle()).isEqualTo("제목 new");
+        assertThat(post.getContent()).isEqualTo("내용 new");
+    }
+
+    @Test
+    @DisplayName("글 수정, 작성자가 아닌 경우")
+    void t16() throws Exception {
+        int id = 1;
+        Member actor = memberService.findByUsername("user2").get();
+
+        ResultActions resultActions = mvc
+                .perform(
+                        put("/api/v1/posts/%d?actorId=%d".formatted(id, actor.getId()))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "제목 new",
+                                            "content": "내용 new"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("modify"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("권한이 없습니다."));
+
+        assertThat(postService.findById(id).get().getTitle()).isEqualTo("제목 1");
     }
 
     @Test
