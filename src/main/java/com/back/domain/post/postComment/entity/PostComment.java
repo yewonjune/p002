@@ -27,6 +27,10 @@ public class PostComment extends BaseEntity {
         this.content = content;
     }
 
+    public void checkActorCanModify(Member actor) {
+        checkActorIsAuthor(actor);
+    }
+
     public void checkActorCanDelete(Member actor) {
         checkActorIsAuthor(actor);
     }
