@@ -187,10 +187,11 @@ public class ApiV1PostCommentControllerTest {
     void t4() throws Exception {
         int postId = 1;
         int id = 1;
+        Member actor = postService.findById(postId).get().findCommentById(id).get().getAuthor();
 
         ResultActions resultActions = mvc
                 .perform(
-                        put("/api/v1/posts/%d/comments/%d".formatted(postId, id))
+                        put("/api/v1/posts/%d/comments/%d?actorId=%d".formatted(postId, id, actor.getId()))
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("""
                                         {
@@ -206,6 +207,37 @@ public class ApiV1PostCommentControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.resultCode").value("200-1"))
                 .andExpect(jsonPath("$.msg").value("%d번 댓글이 수정되었습니다.".formatted(id)));
+
+        assertThat(postService.findById(postId).get().findCommentById(id).get().getContent()).isEqualTo("내용 new");
+    }
+
+    @Test
+    @DisplayName("댓글 수정, 작성자가 아닌 경우")
+    void t12() throws Exception {
+        int postId = 1;
+        int id = 1;
+        Member actor = memberService.findByUsername("user2").get();
+
+        ResultActions resultActions = mvc
+                .perform(
+                        put("/api/v1/posts/%d/comments/%d?actorId=%d".formatted(postId, id, actor.getId()))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "content": "내용 new"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostCommentController.class))
+                .andExpect(handler().methodName("modify"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.resultCode").value("403-1"))
+                .andExpect(jsonPath("$.msg").value("권한이 없습니다."));
+
+        assertThat(postService.findById(postId).get().findCommentById(id).get().getContent()).isEqualTo("댓글 1-1");
     }
 
     @Test
