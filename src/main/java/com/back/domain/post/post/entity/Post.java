@@ -36,13 +36,15 @@ public class Post extends BaseEntity {
         this.content = content;
     }
 
-    public void checkActorCanDelete(Member actor) {
-        if (author.getId() != actor.getId()) {
-            throw new AccessDeniedException();
-        }
+    public void checkActorCanModify(Member actor) {
+        checkActorIsAuthor(actor);
     }
 
-    public void checkActorCanModify(Member actor) {
+    public void checkActorCanDelete(Member actor) {
+        checkActorIsAuthor(actor);
+    }
+
+    private void checkActorIsAuthor(Member actor) {
         if (author.getId() != actor.getId()) {
             throw new AccessDeniedException();
         }
