@@ -1,9 +1,12 @@
 package com.back.domain.post.postComment.controller;
 
+import com.back.domain.member.member.entity.Member;
+import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
 import com.back.domain.post.postComment.dto.PostCommentDto;
 import com.back.domain.post.postComment.entity.PostComment;
+import com.back.global.globalExceptionHandler.UnauthenticatedException;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,6 +25,7 @@ import java.util.List;
 @Tag(name = "ApiV1PostCommentController", description = "API 댓글 컨트롤러")
 public class ApiV1PostCommentController {
     private final PostService postService;
+    private final MemberService memberService;
 
     @GetMapping
     @Transactional(readOnly = true)
@@ -108,11 +112,16 @@ public class ApiV1PostCommentController {
     @Operation(summary = "작성")
     public RsData<PostCommentDto> write(
             @PathVariable int postId,
+            @RequestParam(defaultValue = "0") int actorId,
             @Valid @RequestBody PostCommentWriteReqBody reqBody
     ) {
+        Member actor = memberService.findById(actorId).orElseThrow(
+                UnauthenticatedException::new
+        );
+
         Post post = postService.findById(postId).get();
 
-        PostComment postComment = postService.writeComment(post, reqBody.content);
+        PostComment postComment = postService.writeComment(actor, post, reqBody.content);
 
         postService.flush();
 
