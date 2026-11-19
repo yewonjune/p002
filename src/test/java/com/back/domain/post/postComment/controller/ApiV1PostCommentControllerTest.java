@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -163,5 +164,28 @@ public class ApiV1PostCommentControllerTest {
                 .andExpect(jsonPath("$.data.createDate").value(Matchers.startsWith(postComment.getCreateDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.modifyDate").value(Matchers.startsWith(postComment.getModifyDate().toString().substring(0, 20))))
                 .andExpect(jsonPath("$.data.content").value("내용"));
+    }
+
+    @Test
+    @DisplayName("샘플 댓글 작성자 : 1번 user1, 2번 user2, 3번 user3, 4번 user1, 5번 user2")
+    void t6() throws Exception {
+        int[][] postIdAndCommentIds = {{1, 1}, {1, 2}, {1, 3}, {2, 4}, {2, 5}};
+        String[] expectedAuthorNames = {"유저1", "유저2", "유저3", "유저1", "유저2"};
+
+        for (int i = 0; i < postIdAndCommentIds.length; i++) {
+            int postId = postIdAndCommentIds[i][0];
+            int id = postIdAndCommentIds[i][1];
+
+            PostComment postComment = postService.findById(postId).get().findCommentById(id).get();
+
+            assertThat(postComment.getAuthor().getName()).isEqualTo(expectedAuthorNames[i]);
+
+            mvc
+                    .perform(get("/api/v1/posts/%d/comments/%d".formatted(postId, id)))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.authorId").value(postComment.getAuthor().getId()))
+                    .andExpect(jsonPath("$.authorName").value(expectedAuthorNames[i]));
+        }
     }
 }

@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -258,6 +259,26 @@ public class ApiV1PostControllerTest {
                     .andExpect(jsonPath("$[%d].modifyDate".formatted(i)).value(Matchers.startsWith(post.getModifyDate().toString().substring(0, 20))))
                     .andExpect(jsonPath("$[%d].title".formatted(i)).value(post.getTitle()))
                     .andExpect(jsonPath("$[%d].content".formatted(i)).value(post.getContent()));
+        }
+    }
+
+    @Test
+    @DisplayName("샘플 글 작성자 : 1번 글 user1, 2번 글 user2, 3번 글 user3")
+    void t10() throws Exception {
+        String[] expectedAuthorNames = {"유저1", "유저2", "유저3"};
+
+        for (int i = 0; i < expectedAuthorNames.length; i++) {
+            int id = i + 1;
+            Post post = postService.findById(id).get();
+
+            assertThat(post.getAuthor().getName()).isEqualTo(expectedAuthorNames[i]);
+
+            mvc
+                    .perform(get("/api/v1/posts/%d".formatted(id)))
+                    .andDo(print())
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.authorId").value(post.getAuthor().getId()))
+                    .andExpect(jsonPath("$.authorName").value(expectedAuthorNames[i]));
         }
     }
 }
