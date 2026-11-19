@@ -5,6 +5,7 @@ import com.back.domain.member.member.service.MemberService;
 import com.back.domain.post.post.dto.PostDto;
 import com.back.domain.post.post.entity.Post;
 import com.back.domain.post.post.service.PostService;
+import com.back.global.globalExceptionHandler.AccessDeniedException;
 import com.back.global.rsData.RsData;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -51,8 +52,17 @@ public class ApiV1PostController {
     @DeleteMapping("/{id}")
     @Transactional
     @Operation(summary = "삭제")
-    public RsData<Void> delete(@PathVariable int id) {
+    public RsData<Void> delete(
+            @PathVariable int id,
+            @RequestParam(defaultValue = "0") int actorId
+    ) {
+        Member actor = memberService.getActor(actorId);
+
         Post post = postService.findById(id).get();
+
+        if (post.getAuthor().getId() != actor.getId()) {
+            throw new AccessDeniedException();
+        }
 
         postService.delete(post);
 
