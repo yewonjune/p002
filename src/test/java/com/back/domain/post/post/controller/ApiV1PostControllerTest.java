@@ -277,6 +277,48 @@ public class ApiV1PostControllerTest {
 
 
     @Test
+    @DisplayName("글 삭제, without actorId")
+    void t14() throws Exception {
+        int id = 1;
+
+        ResultActions resultActions = mvc
+                .perform(
+                        delete("/api/v1/posts/%d".formatted(id))
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("delete"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+
+        assertThat(postService.findById(id)).isPresent();
+    }
+
+    @Test
+    @DisplayName("글 삭제, with wrong actorId")
+    void t15() throws Exception {
+        int id = 1;
+
+        ResultActions resultActions = mvc
+                .perform(
+                        delete("/api/v1/posts/%d?actorId=%d".formatted(id, Integer.MAX_VALUE))
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("delete"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+
+        assertThat(postService.findById(id)).isPresent();
+    }
+
+    @Test
     @DisplayName("글 단건조회")
     void t4() throws Exception {
         int id = 1;
