@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -149,5 +150,27 @@ public class ApiV1MemberControllerTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.resultCode").value("401-1"))
                 .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+    }
+
+    @Test
+    @DisplayName("샘플 회원 6명이 생성되어 있다.")
+    void t5() {
+        assertThat(memberService.count()).isEqualTo(6);
+
+        String[][] expected = {
+                {"system", "시스템"},
+                {"admin", "관리자"},
+                {"user1", "유저1"},
+                {"user2", "유저2"},
+                {"user3", "유저3"},
+                {"user4", "유저4"}
+        };
+
+        for (String[] row : expected) {
+            Member member = memberService.findByUsername(row[0]).get();
+
+            assertThat(member.getName()).isEqualTo(row[1]);
+            assertThat(member.getPassword()).isEqualTo("12345678");
+        }
     }
 }
