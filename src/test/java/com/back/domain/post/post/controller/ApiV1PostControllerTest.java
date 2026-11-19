@@ -267,6 +267,62 @@ public class ApiV1PostControllerTest {
     }
 
     @Test
+    @DisplayName("글 수정, without actorId")
+    void t17() throws Exception {
+        int id = 1;
+
+        ResultActions resultActions = mvc
+                .perform(
+                        put("/api/v1/posts/%d".formatted(id))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "제목 new",
+                                            "content": "내용 new"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("modify"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+
+        assertThat(postService.findById(id).get().getTitle()).isEqualTo("제목 1");
+    }
+
+    @Test
+    @DisplayName("글 수정, with wrong actorId")
+    void t18() throws Exception {
+        int id = 1;
+
+        ResultActions resultActions = mvc
+                .perform(
+                        put("/api/v1/posts/%d?actorId=%d".formatted(id, Integer.MAX_VALUE))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content("""
+                                        {
+                                            "title": "제목 new",
+                                            "content": "내용 new"
+                                        }
+                                        """)
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostController.class))
+                .andExpect(handler().methodName("modify"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+
+        assertThat(postService.findById(id).get().getTitle()).isEqualTo("제목 1");
+    }
+
+    @Test
     @DisplayName("글 삭제")
     void t3() throws Exception {
         int id = 1;
