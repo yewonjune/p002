@@ -13,6 +13,10 @@ import java.util.Optional;
 public class MemberService {
     private final MemberRepository memberRepository;
 
+    public long count() {
+        return memberRepository.count();
+    }
+
     public Member join(String username, String password, String name) {
         memberRepository.findByUsername(username)
                 .ifPresent(_ -> {
