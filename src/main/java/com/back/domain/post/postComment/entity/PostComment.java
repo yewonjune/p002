@@ -20,10 +20,6 @@ public class PostComment extends BaseEntity {
     private Post post;
     private String content;
 
-    public PostComment(Post post, String content) {
-        this(null, post, content);
-    }
-
     public PostComment(Member author, Post post, String content) {
         this.author = author;
         this.post = post;

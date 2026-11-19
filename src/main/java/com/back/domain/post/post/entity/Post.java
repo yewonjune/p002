@@ -40,10 +40,6 @@ public class Post extends BaseEntity {
         this.content = content;
     }
 
-    public PostComment addComment(String content) {
-        return addComment(null, content);
-    }
-
     public PostComment addComment(Member author, String content) {
         PostComment postComment = new PostComment(author, this, content);
         comments.add(postComment);
