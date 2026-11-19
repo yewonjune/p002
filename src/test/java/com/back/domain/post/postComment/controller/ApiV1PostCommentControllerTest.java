@@ -139,6 +139,50 @@ public class ApiV1PostCommentControllerTest {
     }
 
     @Test
+    @DisplayName("댓글 삭제, without actorId")
+    void t10() throws Exception {
+        int postId = 1;
+        int id = 1;
+
+        ResultActions resultActions = mvc
+                .perform(
+                        delete("/api/v1/posts/%d/comments/%d".formatted(postId, id))
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostCommentController.class))
+                .andExpect(handler().methodName("delete"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+
+        assertThat(postService.findById(postId).get().findCommentById(id)).isPresent();
+    }
+
+    @Test
+    @DisplayName("댓글 삭제, with wrong actorId")
+    void t11() throws Exception {
+        int postId = 1;
+        int id = 1;
+
+        ResultActions resultActions = mvc
+                .perform(
+                        delete("/api/v1/posts/%d/comments/%d?actorId=%d".formatted(postId, id, Integer.MAX_VALUE))
+                )
+                .andDo(print());
+
+        resultActions
+                .andExpect(handler().handlerType(ApiV1PostCommentController.class))
+                .andExpect(handler().methodName("delete"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.resultCode").value("401-1"))
+                .andExpect(jsonPath("$.msg").value("로그인 후 이용해주세요."));
+
+        assertThat(postService.findById(postId).get().findCommentById(id)).isPresent();
+    }
+
+    @Test
     @DisplayName("댓글 수정")
     void t4() throws Exception {
         int postId = 1;
