@@ -42,7 +42,11 @@ public class PostService {
     }
 
     public PostComment writeComment(Post post, String content) {
-        return post.addComment(content);
+        return writeComment(null, post, content);
+    }
+
+    public PostComment writeComment(Member author, Post post, String content) {
+        return post.addComment(author, content);
     }
 
     public boolean deleteComment(Post post, PostComment postComment) {
